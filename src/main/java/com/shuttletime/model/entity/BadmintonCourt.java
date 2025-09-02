@@ -1,5 +1,6 @@
 package com.shuttletime.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,5 +15,8 @@ public class BadmintonCourt {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
+    @JsonBackReference  // Prevents infinite loop
     private Venue venue;
+
+    private double price;
 }
