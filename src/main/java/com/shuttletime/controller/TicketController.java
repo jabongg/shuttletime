@@ -1,7 +1,11 @@
 package com.shuttletime.controller;
 
+import com.shuttletime.model.dto.TicketResponse;
+import com.shuttletime.model.entity.Booking;
 import com.shuttletime.repository.BookingRepository;
+import com.shuttletime.service.BookingService;
 import com.shuttletime.service.TicketService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +17,17 @@ import org.springframework.web.bind.annotation.*;
 public class TicketController {
 
     private final BookingRepository bookingRepository;
+
+    @Autowired
     private final TicketService ticketService;
 
-    public TicketController(BookingRepository bookingRepository, TicketService ticketService) {
+    @Autowired
+    private final BookingService bookingService;
+
+    public TicketController(BookingRepository bookingRepository, TicketService ticketService, BookingService bookingService) {
         this.bookingRepository = bookingRepository;
         this.ticketService = ticketService;
+        this.bookingService = bookingService;
     }
 
     @GetMapping("/{id}/ticket")
@@ -36,4 +46,5 @@ public class TicketController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 }

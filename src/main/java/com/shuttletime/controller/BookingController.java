@@ -1,8 +1,10 @@
 package com.shuttletime.controller;
 
 import com.shuttletime.model.dto.BookingRequest;
+import com.shuttletime.model.dto.BookingResponse;
 import com.shuttletime.model.entity.Booking;
 import com.shuttletime.model.entity.Payment;
+import com.shuttletime.repository.BookingRepository;
 import com.shuttletime.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,8 +31,12 @@ public class BookingController {
     @Autowired
     private final BookingService bookingService;
 
-    public BookingController(BookingService bookingService) {
+    @Autowired
+    private final BookingRepository bookingRepository;
+
+    public BookingController(BookingService bookingService, BookingRepository bookingRepository) {
         this.bookingService = bookingService;
+        this.bookingRepository = bookingRepository;
     }
 
     @Operation(
@@ -135,5 +141,11 @@ public class BookingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long bookingId) {
+        return bookingService.getBookingDetails(bookingId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
 

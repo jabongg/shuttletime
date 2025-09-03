@@ -14,6 +14,7 @@ import com.itextpdf.io.image.ImageDataFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 import com.shuttletime.model.entity.Booking;
 import org.springframework.stereotype.Service;
@@ -52,4 +53,5 @@ public class TicketService {
 
         return baos.toByteArray();
     }
+
 }

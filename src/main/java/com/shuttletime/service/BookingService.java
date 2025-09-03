@@ -1,6 +1,7 @@
 package com.shuttletime.service;
 
 import com.shuttletime.enums.BookingStatus;
+import com.shuttletime.model.dto.BookingResponse;
 import com.shuttletime.model.entity.*;
 import com.shuttletime.repository.BookingRepository;
 import com.shuttletime.repository.CourtRepository;
@@ -8,6 +9,7 @@ import com.shuttletime.repository.UserRepository;
 import com.shuttletime.repository.VenueRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -178,5 +180,11 @@ public class BookingService {
         return bookingRepo.findByPaymentId(payment.getId());
     }
 
+    public Optional<Booking> findBookingById(Long bookingId) {
+        return bookingRepo.findById(bookingId);
+    }
 
+    public Optional<BookingResponse> getBookingDetails(Long bookingId) {
+        return bookingRepo.findBookingDetailsById(bookingId);
+    }
 }
