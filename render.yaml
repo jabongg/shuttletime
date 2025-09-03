@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: shuttle-backend
+    env: java
+    plan: free
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/*.jar"
+    envVars:
+      - key: postgresql://shuttletime_user:hYAjxM2Jm4VZVthmzxoLWMQIIXHqyC0h@dpg-d2s874m3jp1c739ospfg-a/shuttletime
+        fromDatabase:
+          name: shuttletime
+          property: connectionString
+      - key: "shuttletime_user"
+        fromDatabase:
+          name: shuttletime
+          property: user
+      - key: "hYAjxM2Jm4VZVthmzxoLWMQIIXHqyC0h"
+        fromDatabase:
+          name: shuttletime
+          property: password
+
+databases:
+  - name: shuttletime
+    plan: free
