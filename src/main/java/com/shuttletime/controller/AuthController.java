@@ -8,8 +8,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173") // allow React frontend
-
+@CrossOrigin(
+        origins = {
+                "http://localhost:5173",              // Local React dev frontend
+                "https://shuttle-ui.vercel.app"      // Vercel frontend
+        },
+        allowedHeaders = "*",
+        allowCredentials = "true"
+)
 public class AuthController {
 
     private final AuthService authService;

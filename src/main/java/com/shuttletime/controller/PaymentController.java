@@ -15,7 +15,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/payments")
-@CrossOrigin(origins = "http://localhost:5173") // allow frontend
+@CrossOrigin(
+        origins = {
+                "http://localhost:5173",              // Local React dev frontend
+                "https://shuttle-ui.vercel.app"      // Vercel frontend
+        },
+        allowedHeaders = "*",
+        allowCredentials = "true"
+)
 public class PaymentController {
 
     private final PaymentService service;

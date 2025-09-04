@@ -13,7 +13,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(
+        origins = {
+                "http://localhost:5173",              // Local React dev frontend
+                "https://shuttle-ui.vercel.app"      // Vercel frontend
+        },
+        allowedHeaders = "*",
+        allowCredentials = "true"
+)
 public class TicketController {
 
     private final BookingRepository bookingRepository;

@@ -24,7 +24,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/bookings")
-@CrossOrigin(origins = "http://localhost:5173") // allow React frontend
+@CrossOrigin(
+        origins = {
+                "http://localhost:5173",              // Local React dev frontend
+                "https://shuttle-ui.vercel.app"      // Vercel frontend
+        },
+        allowedHeaders = "*",
+        allowCredentials = "true"
+)
 @Tag(name = "Booking API", description = "Operations related to badminton court bookings")
 public class BookingController {
 
