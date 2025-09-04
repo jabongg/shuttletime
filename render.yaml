@@ -3,21 +3,10 @@ services:
     name: shuttletime
     env: docker
     plan: free
-    buildCommand: "./mvnw clean package -DskipTests"
-    startCommand: "java -jar target/*.jar"
+    autoDeploy: true
     envVars:
-      - key: postgresql://shuttletime_user:hYAjxM2Jm4VZVthmzxoLWMQIIXHqyC0h@dpg-d2s874m3jp1c739ospfg-a/shuttletime
-        fromDatabase:
-          name: shuttletime
-          property: connectionString
-      - key: "shuttletime_user"
-        fromDatabase:
-          name: shuttletime
-          property: user
-      - key: "hYAjxM2Jm4VZVthmzxoLWMQIIXHqyC0h"
-        fromDatabase:
-          name: shuttletime
-          property: password
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
 
 databases:
   - name: shuttletime
