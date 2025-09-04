@@ -1,24 +1,13 @@
 services:
   - type: web
-    name: shuttle-backend
-    env: java
+    name: shuttletime
+    env: docker
     plan: free
-    buildCommand: "./mvnw clean package -DskipTests"
-    startCommand: "java -jar target/*.jar"
+    autoDeploy: true
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: shuttle-db
-          property: connectionString
-      - key: DATABASE_USERNAME
-        fromDatabase:
-          name: shuttle-db
-          property: user
-      - key: DATABASE_PASSWORD
-        fromDatabase:
-          name: shuttle-db
-          property: password
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
 
 databases:
-  - name: shuttle-db
+  - name: shuttletime
     plan: free
