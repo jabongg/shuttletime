@@ -63,9 +63,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     SELECT 
         b.id AS booking_id,
         u.username AS user_name,
-        v.name AS venue_name,
+        -- Full venue name (Name + Street + District + State)
+        v.name || ', ' || v.street || ', ' || v.district || ', ' || v.state || ', ' || v.pincode AS venue_name,        
         c.court_name AS court_name,
-        TO_CHAR(b.booking_time, 'YYYY-MM-DD') AS booking_date,
+        TO_CHAR(b.start_time, 'YYYY-MM-DD') AS booking_date,
         TO_CHAR(b.start_time, 'HH12:MI AM') || ' - ' || TO_CHAR(b.end_time, 'HH12:MI AM') AS slot_time,
         p.amount AS amount
     FROM booking b
