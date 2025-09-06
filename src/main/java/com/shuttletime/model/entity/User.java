@@ -24,6 +24,4 @@ public class User {
     private String password;
 
     private String oauth2Provider;
-
-    private String jwtToken;
 }
