@@ -22,4 +22,6 @@ public class User {
     private String contactNumber;
 
     private String password;
+
+    private String oauth2Provider;
 }
