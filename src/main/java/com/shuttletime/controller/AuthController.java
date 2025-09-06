@@ -10,6 +10,8 @@ import com.shuttletime.model.entity.User;
 import com.shuttletime.repository.UserRepository;
 import com.shuttletime.service.AuthService;
 import com.shuttletime.util.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +32,8 @@ import java.util.Optional;
 )
 public class AuthController {
 
+    private final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
@@ -43,12 +47,15 @@ public class AuthController {
     // ---------------- Local login ----------------
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        logger.info("classical login in progress.");
         return ResponseEntity.ok(authService.login(request));
     }
 
     // ---------------- Google login ----------------
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
+        logger.info("google oauth2 login in progress.");
+
         String idTokenString = payload.get("token");
 
         try {
@@ -65,19 +72,25 @@ public class AuthController {
                 GoogleIdToken.Payload userPayload = idToken.getPayload();
                 String email = userPayload.getEmail();
                 String name = (String) userPayload.get("name");
+                String oauth2Provider = userPayload.getHostedDomain();
+
 
                 // 🔑 Check if user exists, else create
+
+                // 🔑 Generate JWT
+                String token = jwtUtil.generateToken(email);
+
                 Optional<User> existingUser = userRepository.findByEmail(email);
                 User user = existingUser.orElseGet(() -> {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setUsername(name);
+                    newUser.setOauth2Provider("google");
+                    newUser.setJwtToken(token);
                     // No password required for Google accounts
                     return userRepository.save(newUser);
                 });
 
-                // 🔑 Generate JWT
-                String token = jwtUtil.generateToken(email);
 
                 return ResponseEntity.ok(new LoginResponse(
                         user.getUserId(),
