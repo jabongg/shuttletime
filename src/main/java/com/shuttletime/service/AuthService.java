@@ -4,6 +4,7 @@ import com.shuttletime.model.dto.LoginRequest;
 import com.shuttletime.model.dto.LoginResponse;
 import com.shuttletime.model.entity.User;
 import com.shuttletime.repository.UserRepository;
+import com.shuttletime.util.JwtUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -12,9 +13,11 @@ import java.util.Optional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -29,6 +32,14 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return new LoginResponse("Login successful", user.getUserId().toString(), user.getUsername());
+        // 🔑 Generate JWT token
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return new LoginResponse(
+                "Login successful",
+                user.getUserId(),
+                user.getUsername(),
+                token  // ✅ Now response carries the JWT
+        );
     }
 }
