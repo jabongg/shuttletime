@@ -6,12 +6,17 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.shuttletime.enums.PaymentStatus;
 import com.shuttletime.model.dto.PaymentVerificationRequest;
-import com.shuttletime.model.dto.PaymentsVerifyResponse;
+import com.shuttletime.model.dto.PaymentsVerificationResponse;
+import com.shuttletime.model.entity.BadmintonCourt;
+import com.shuttletime.model.entity.Booking;
 import com.shuttletime.model.entity.Payment;
+import com.shuttletime.model.entity.User;
+import com.shuttletime.repository.BookingRepository;
 import com.shuttletime.repository.PaymentRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityManager;
 import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -21,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,7 +42,7 @@ import java.util.UUID;
 )
 public class RazorpayController {
     private static final Logger log = LoggerFactory.getLogger(RazorpayController.class);
-
+    private static final Gson gson = new Gson();
     private final RazorpayClient razorpayClient;
 
     private static final String KEY_ID = "rzp_test_RF9TemS9XUx4ZJ"; // replace with your key id
@@ -46,6 +50,12 @@ public class RazorpayController {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
+    private BookingRepository bookingRepo;
 
     public RazorpayController(RazorpayClient razorpayClient) {
         this.razorpayClient = razorpayClient;
@@ -74,7 +84,8 @@ public class RazorpayController {
     }
 
     @PostMapping("/verify")
-    public String verifyPayments(@RequestBody PaymentVerificationRequest request) throws Exception {
+    public PaymentsVerificationResponse verifyPayments(@RequestBody PaymentVerificationRequest request) throws Exception {
+        // 0. generate signature to match and verify
         String generatedSignature = generateSignature(
                 request.getRazorpayOrderId() + "|" + request.getRazorpayPaymentId(),
                 KEY_SECRET
@@ -82,10 +93,11 @@ public class RazorpayController {
 
         // check signature
         if (!generatedSignature.equals(request.getRazorpaySignature())) {
-            return "Payment verification failed: invalid signature.";
+            log.error("Payment verification failed: invalid signature.");
+            throw new Exception("Payment verification failed: invalid signature.");
         }
 
-        // ✅ Save or update in DB
+        // 1. Save payment in DB
         Optional<Payment> paymentOpt = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId());
         Payment payment;
         if (paymentOpt.isPresent()) {
@@ -97,50 +109,56 @@ public class RazorpayController {
 
         payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
         payment.setRazorpaySignature(request.getRazorpaySignature());
+        payment.setAmount(request.getAmount());
+        payment.setUserId(request.getUserId());
+        payment.setCourtId(request.getCourtId());
 
         if (generatedSignature.equals(request.getRazorpaySignature())) {
+            payment.setRazorpayStatus(PaymentStatus.SUCCESS);
             payment.setStatus(PaymentStatus.SUCCESS.toString());
-            paymentRepository.save(payment);
-            return "Payment verified successfully!";
+            //paymentRepository.save(payment);
+            log.info("Payment verified successfully!");
         } else {
+            payment.setRazorpayStatus(PaymentStatus.FAILED);
             payment.setStatus(PaymentStatus.FAILED.toString());
-            paymentRepository.save(payment);
-            return "Payment verification failed: invalid signature.";
+            //paymentRepository.save(payment);
+            log.info("Payment verification failed: invalid signature.");
         }
-    }
-
-    @PostMapping("/verify-payment")
-    public PaymentsVerifyResponse verifyPayment(PaymentVerificationRequest request) throws Exception {
-        // 1️⃣ Generate signature
-        String data = request.getRazorpayOrderId() + "|" + request.getRazorpayPaymentId();
-        Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-        SecretKeySpec secretKey = new SecretKeySpec(KEY_SECRET.getBytes(), "HmacSHA256");
-        sha256_HMAC.init(secretKey);
-        String generatedSignature = Hex.encodeHexString(sha256_HMAC.doFinal(data.getBytes()));
-
-        // 2️⃣ Compare with Razorpay signature
-        if (!generatedSignature.equals(request.getRazorpaySignature())) {
-            throw new RuntimeException("Razorpay signature mismatch! Payment verification failed.");
-        }
-
-        // 3️⃣ Save payment in DB
-        Payment payment = new Payment();
-        payment.setUserId(UUID.fromString(request.getUserId()));
-        payment.setCourtId(request.getCourtId());
-        payment.setRazorpayOrderId(request.getRazorpayOrderId());
-        payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
-        payment.setRazorpaySignature(request.getRazorpaySignature());
-        payment.setAmount(request.getAmount());
 
         Payment savedPayment = paymentRepository.save(payment);
-        PaymentsVerifyResponse paymentsVerifyResponse = new PaymentsVerifyResponse();
-        paymentsVerifyResponse.setBookingId(savedPayment.getBooking().getId());
+        log.info("saved payment : ", gson.toJson(savedPayment));
+
+
+        // 2. Fetch managed references
+        User user = entityManager.getReference(User.class, request.getUserId());
+        BadmintonCourt court = entityManager.getReference(BadmintonCourt.class, Long.valueOf(request.getCourtId()));
+
+        // 3. Save booking linked with payment
+        Booking booking = new Booking();
+        booking.setUser(user); // ✅ managed entity
+        booking.setBadmintonCourt(court); // ✅ managed entity
+        booking.setStartTime(request.getStartTime());
+        booking.setEndTime(request.getEndTime());
+        booking.setPayment(payment);
+
+        log.info("booking info being saved : ", gson.toJson(booking));
+        Booking savedBooking = bookingRepo.save(booking);
+
+        // 4. create response
+        PaymentsVerificationResponse paymentsVerifyResponse = new PaymentsVerificationResponse();
+        paymentsVerifyResponse.setTransactionId(savedPayment.getTransactionId());
+        paymentsVerifyResponse.setCourtId(savedPayment.getCourtId());
+        paymentsVerifyResponse.setUserId(savedPayment.getUserId());
+        paymentsVerifyResponse.setBookingId(savedBooking.getId());
+        payment.setAmount(savedPayment.getAmount());
         paymentsVerifyResponse.setMessage("SUCCESS");
+        paymentsVerifyResponse.setStatus(savedPayment.getStatus());
+        log.info("paymentsVerifyResponse : ", gson.toJson(paymentsVerifyResponse));
         return paymentsVerifyResponse;
     }
 
 
-    private String generateSignature (String data, String secret) throws Exception {
+    private String generateSignature(String data, String secret) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA256");
         SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
         mac.init(secretKey);

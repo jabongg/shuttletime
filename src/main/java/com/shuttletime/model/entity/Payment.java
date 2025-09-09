@@ -36,9 +36,9 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     private PaymentStatus razorpayStatus = PaymentStatus.PENDING;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
 
     public Payment() {
         this.transactionId = UUID.randomUUID().toString();

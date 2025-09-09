@@ -82,7 +82,7 @@ public class BookingController {
                 req.getEndTime()
         );
 
-        log.info(new Gson().toJson(booking));
+        log.info("booking object : ", new Gson().toJson(booking));
 
         return ResponseEntity.ok(booking);
     }
