@@ -1,5 +1,6 @@
 package com.shuttletime.controller;
 
+import com.google.gson.Gson;
 import com.shuttletime.model.dto.BookingRequest;
 import com.shuttletime.model.dto.BookingResponse;
 import com.shuttletime.model.entity.Booking;
@@ -13,6 +14,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +37,8 @@ import java.util.Map;
 )
 @Tag(name = "Booking API", description = "Operations related to badminton court bookings")
 public class BookingController {
+
+    private static final Logger log = LoggerFactory.getLogger(BookingController.class);
 
     @Autowired
     private final BookingService bookingService;
@@ -69,12 +74,16 @@ public class BookingController {
     )
     @PostMapping
     public ResponseEntity<Booking> createBooking(@RequestBody BookingRequest req) {
+        log.info("creating a booking ====>");
         Booking booking = bookingService.createBooking(
                 req.getCourtId(),
                 req.getUserId(),
                 req.getStartTime(),
                 req.getEndTime()
         );
+
+        log.info("booking object : ", new Gson().toJson(booking));
+
         return ResponseEntity.ok(booking);
     }
 
@@ -150,9 +159,13 @@ public class BookingController {
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long bookingId) {
-        return bookingService.getBookingDetails(bookingId)
+        log.info("get booking by booking id ====>");
+        var bookingResponse = bookingService.getBookingDetails(bookingId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+
+        log.info("booking response : " + new Gson().toJson(bookingResponse));
+        return bookingResponse;
     }
 }
 

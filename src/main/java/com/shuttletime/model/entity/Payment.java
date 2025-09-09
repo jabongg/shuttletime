@@ -1,6 +1,7 @@
 package com.shuttletime.model.entity;
 
 // Payment.java
+import com.shuttletime.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,7 +24,21 @@ public class Payment {
     @Column(name = "user_id", columnDefinition = "UUID")
     private UUID userId;   // Changed to UUID
 
+    // ✅ Razorpay-specific fields
+    @Column(unique = true)
+    private String razorpayOrderId;
+
+    @Column(unique = true)
+    private String razorpayPaymentId;
+
+    private String razorpaySignature;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus razorpayStatus = PaymentStatus.PENDING;
+
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public Payment() {
         this.transactionId = UUID.randomUUID().toString();
