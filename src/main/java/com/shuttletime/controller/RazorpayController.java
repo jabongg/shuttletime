@@ -69,7 +69,7 @@ public class RazorpayController {
     ) throws RazorpayException {
         log.info("creating razorpay order");
         JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount", amount * 100); // Razorpay expects amount in paise
+        orderRequest.put("amount", amount); // Razorpay expects amount in paise
         orderRequest.put("currency", "INR");
 
         Order order = razorpayClient.orders.create(orderRequest);
