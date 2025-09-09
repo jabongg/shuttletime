@@ -4,11 +4,18 @@ import com.shuttletime.model.dto.NotificationRequest;
 import com.shuttletime.service.EmailService;
 import com.shuttletime.service.SMSService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController("/notification")
+@RestController
+@RequestMapping("/notification")
+@CrossOrigin(
+        origins = {
+                "http://localhost:5173",              // Local React dev frontend
+                "https://shuttle-ui.vercel.app"      // Vercel frontend
+        },
+        allowedHeaders = "*",
+        allowCredentials = "true"
+)
 public class NotificationController {
 
     @Autowired

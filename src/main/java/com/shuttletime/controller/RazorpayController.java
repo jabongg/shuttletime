@@ -69,7 +69,7 @@ public class RazorpayController {
     ) throws RazorpayException {
         log.info("creating razorpay order");
         JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount", amount); // Razorpay expects amount in paise
+        orderRequest.put("amount", amount * 100); // Razorpay expects amount in paise
         orderRequest.put("currency", "INR");
 
         Order order = razorpayClient.orders.create(orderRequest);
@@ -109,7 +109,7 @@ public class RazorpayController {
 
         payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
         payment.setRazorpaySignature(request.getRazorpaySignature());
-        payment.setAmount(request.getAmount());
+        payment.setAmount(request.getAmount() / 100); // converts back to rupee before saving in db
         payment.setUserId(request.getUserId());
         payment.setCourtId(request.getCourtId());
 
@@ -126,7 +126,7 @@ public class RazorpayController {
         }
 
         Payment savedPayment = paymentRepository.save(payment);
-        log.info("saved payment : ", gson.toJson(savedPayment));
+        //log.info("saved payment : ", gson.toJson(savedPayment));
 
 
         // 2. Fetch managed references
@@ -141,7 +141,7 @@ public class RazorpayController {
         booking.setEndTime(request.getEndTime());
         booking.setPayment(payment);
 
-        log.info("booking info being saved : ", gson.toJson(booking));
+        //log.info("booking info being saved : ", gson.toJson(booking));
         Booking savedBooking = bookingRepo.save(booking);
 
         // 4. create response
