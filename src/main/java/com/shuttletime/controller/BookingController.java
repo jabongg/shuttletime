@@ -164,7 +164,7 @@ public class BookingController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
 
-        log.info("booking response : " + new Gson().toJson(bookingResponse));
+        log.info("booking response : {}", new Gson().toJson(bookingResponse));
         return bookingResponse;
     }
 }
