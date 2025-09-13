@@ -11,13 +11,15 @@ import com.shuttletime.repository.UserRepository;
 import com.shuttletime.repository.CourtRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 
+
+@Slf4j
 @Service
 public class PaymentService {
 
@@ -47,6 +49,7 @@ public class PaymentService {
 
     @Transactional
     public Payment makePayment(PaymentRequest request) {
+        log.info("payment in progress!");
         // 1. Save payment
         Payment payment = new Payment();
         payment.setUserId(request.getUserId());
@@ -73,6 +76,7 @@ public class PaymentService {
     }
 
     public Booking findBookingByPayment(Payment payment) {
+        log.info("find booking by payment!");
         List<Booking> bookings = bookingRepo.findAll();
         for (Booking b : bookings) {
             if (b.getPayment() != null && b.getPayment().getId().equals(payment.getId())) {
